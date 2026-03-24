@@ -1,49 +1,34 @@
 name: ML Pipeline
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-
+          python-version: '3.10'
       - run: pip install mlflow
-
       - run: python train.py
-
       - run: echo "RUN_ID=$(cat run_id.txt)" > model_info.txt
-
       - uses: actions/upload-artifact@v4
         with:
           name: model-info
           path: model_info.txt
 
   deploy:
-    needs: validate
     runs-on: ubuntu-latest
-
+    needs: validate
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/download-artifact@v4
         with:
           name: model-info
-
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-
+          python-version: '3.10'
       - run: pip install mlflow
-
       - run: python check_threshold.py
-
       - run: echo "Building Docker image for Run ID: $(cat model_info.txt)"
